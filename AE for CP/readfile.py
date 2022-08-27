@@ -3,29 +3,31 @@ import cv2
 import os
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
+
+
 # from torchvision import transforms
 
 def pc_normalize(pc):
     centroid = np.mean(pc, axis=0)
     pc = pc - centroid
-    m = np.max(np.sqrt(np.sum(pc**2, axis=1)))
+    m = np.max(np.sqrt(np.sum(pc ** 2, axis=1)))
     pc = pc / m
     return pc
 
+
 class CP_file():
-    def __init__(self,root, npoints = 2500, class_choice = None, normalize=True):
+    def __init__(self, root, npoints=2500, class_choice=None, normalize=True):
         self.normalize = normalize
         self.npoints = npoints
-        self.data_path = os.path.join(root,"shapenetcore_partanno_segmentation_benchmark_v0")
-        self.logs = os.path.join(self.data_path,"synsetoffset2category.txt")
+        self.data_path = os.path.join(root, "shapenetcore_partanno_segmentation_benchmark_v0")
+        self.logs = os.path.join(self.data_path, "synsetoffset2category.txt")
         self.cat = {}
         self.meta = {}
 
-        with open(self.logs,'r') as f:
+        with open(self.logs, 'r') as f:
             for line in f:
                 ls = line.strip().split()
                 self.cat[ls[0]] = ls[1]
-
 
         if class_choice:
             if class_choice in self.cat:
@@ -36,20 +38,19 @@ class CP_file():
                 print("No chosen class in Database")
                 exit(-1)
         # else:
-            # self.class_choice = list(self.cat.keys())
+        # self.class_choice = list(self.cat.keys())
 
+        sub_path = os.path.join(self.data_path, str(self.cat[self.class_choice]))
+        point_dir = os.path.join(sub_path, "points")
+        seg_dir = os.path.join(sub_path, "points_label")
 
-        sub_path =  os.path.join(self.data_path,str(self.cat[self.class_choice]))
-        point_dir = os.path.join(sub_path,"points")
-        seg_dir = os.path.join(sub_path,"points_label")
-        
         fns = sorted(os.listdir(point_dir))
-        
+
         for fn in fns:
-            token = (os.path.splitext(os.path.basename(fn))[0]) 
-            self.meta[self.class_choice].append((os.path.join(point_dir, token + '.pts'), os.path.join(seg_dir, token + '.seg')))
-        
-        
+            token = (os.path.splitext(os.path.basename(fn))[0])
+            self.meta[self.class_choice].append(
+                (os.path.join(point_dir, token + '.pts'), os.path.join(seg_dir, token + '.seg')))
+
     def split_to_set(self):
         data_set = []
         label_set = []
@@ -60,26 +61,30 @@ class CP_file():
                 point_set = pc_normalize(data)
 
             choice = np.random.choice(len(label), self.npoints, replace=True)
-            #resample
+            # resample
             point_set = point_set[choice, :]
-            label = label[choice]    
+            label = label[choice]
             data_set.append(point_set)
             label_set.append(label)
-            
+
         data_set = np.array(data_set)
         label_set = np.array(label_set)
-        
-        train_len = int(len(self.meta[self.class_choice]) * 0.7 ) 
-        validation_len = int(len(self.meta[self.class_choice])* 0.2) 
-        test_len = int(len(self.meta[self.class_choice])* 0.1) 
 
-        train_data, train_label = point_set[:train_len], label_set[:train_len]
+        train_len = int(len(self.meta[self.class_choice]) * 0.7)
+        validation_len = int(len(self.meta[self.class_choice]) * 0.2)
+        test_len = int(len(self.meta[self.class_choice]) * 0.1)
 
-        validation_data, validation_label = point_set[train_len+1:validation_len], label_set[train_len+1:validation_len]
+        # print(train_len,validation_len,test_len)
+        train_data, train_label = data_set[:train_len], label_set[:train_len]
 
-        test_data, test_label = point_set[validation_len+1:test_len], label_set[validation_len+1:test_len]
+        validation_data, validation_label = data_set[train_len + 1:train_len + validation_len], label_set[
+                                                                                                 train_len + 1:train_len + validation_len]
 
-        return train_data, train_label,validation_data, validation_label,test_data, test_label
+        test_data, test_label = data_set[
+                                train_len + validation_len + 1:train_len + validation_len + test_len], label_set[
+                                                                                                       train_len + validation_len + 1:train_len + validation_len + test_len]
+
+        return train_data, train_label, validation_data, validation_label, test_data, test_label
 
     def __len__(self):
         return len(self.meta[self.class_choice])
@@ -89,7 +94,6 @@ class CP_file():
 
     def getChoice(self):
         return self.class_choice
-
 
     def __getitem__(self, index):
         point = self.meta[self.class_choice][index]
@@ -110,6 +114,7 @@ class CloudPointDataSet(Dataset):
     def __getitem__(self, index):
         point = self.points[index][0]
         label = self.labels[index][1]
+
         if self.transform:
             point = self.transform(point)
 
@@ -119,17 +124,21 @@ class CloudPointDataSet(Dataset):
         return point, label
 
 
-
 def load_data(config):
     base_dir = os.getcwd()
-    data_dir = os.path.join(base_dir,"Data")
+    data_dir = os.path.join(base_dir, "data")
     Choice = "Chair"
-    file = CP_file(data_dir,class_choice=Choice)
-    train_data, train_label,validation_data, validation_label,test_data, test_label = file.split_to_set()
+    num_points = config["num_points"]
+    file = CP_file(data_dir, npoints=num_points, class_choice=Choice)
+    train_data, train_label, validation_data, validation_label, test_data, test_label = file.split_to_set()
 
-    train_set = CloudPointDataSet(train_data,train_label)
-    validation_set = CloudPointDataSet(validation_data,validation_label)
-    test_set = CloudPointDataSet(test_data,test_label)
+    train_set = CloudPointDataSet(train_data, train_label)
+
+    # import show3d_balls
+    # show3d_balls.showpoints(train_data[0], ballradius=8)
+
+    validation_set = CloudPointDataSet(validation_data, validation_label)
+    test_set = CloudPointDataSet(test_data, test_label)
 
     return (
         DataLoader(train_set, batch_size=config["batch_size"], shuffle=True),
@@ -137,11 +146,13 @@ def load_data(config):
         DataLoader(test_set, batch_size=config["batch_size"], shuffle=False),
     )
 
+
 config = {
-        "lr": 1e-3,
-        "num_epochs": 1,
-        "batch_size": 64,
-        "regular_constant": 4e-8,
-    }
+    "lr": 1e-3,
+    "num_epochs": 1,
+    "num_points": 2500,
+    "batch_size": 32,
+    "regular_constant": 4e-8,
+}
 
-
+train_loader, valid_loader, test_loader = load_data(config)

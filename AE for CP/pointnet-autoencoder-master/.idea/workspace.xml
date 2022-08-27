@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="d0655904-6ecc-474c-9120-d7dd1988805f" name="变更" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/other.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/pointnet-autoencoder-master.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/LICENSE" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/data/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/doc/teaser.jpg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model_cpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model_emd.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model_fc_upconv.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model_hierachy.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/model_upconv.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/part_dataset.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch_compile.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch_g.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch_g.cu.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/approxmatch/tf_approxmatch_so.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance_compile.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance_cpu.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance_g.cu" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance_g.cu.o" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tf_ops/nn_distance/tf_nndistance_so.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/compile_render_balls_so.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/render_balls_so.cpp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/render_balls_so.so" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/show3d_balls.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/tf_util.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../Simple AutoEncoder/auto_encoder.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/../../Simple AutoEncoder/auto_encoder.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../auto_encoder.ipynb" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2DtL0ymI9kMyFfcReijuBQpOyUA" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="train" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="pointnet-autoencoder-master" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/train.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python.train" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="应用程序级" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="默认任务">
+      <changelist id="d0655904-6ecc-474c-9120-d7dd1988805f" name="变更" comment="" />
+      <created>1661513215147</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1661513215147</updated>
+      <workItem from="1661513217528" duration="5590000" />
+      <workItem from="1661562213139" duration="7517000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/pointnet_autoencoder_master$train.coverage" NAME="train 覆盖结果" MODIFIED="1661515166585" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+  </component>
+</project>

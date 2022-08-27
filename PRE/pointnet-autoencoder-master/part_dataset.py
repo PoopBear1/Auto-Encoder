@@ -139,8 +139,9 @@ if __name__ == '__main__':
     # print(time.time() - tic)
     print(ps.shape, type(ps), seg.shape,type(seg))
     sys.path.append('utils')
-    # import show3d_balls
-    # show3d_balls.showpoints(ps, ballradius=8)
+    import show3d_balls
+    print type(ps)
+    show3d_balls.showpoints(ps, ballradius=8)
    
     d = PartDataset(root = os.path.join(BASE_DIR, 'data/shapenetcore_partanno_segmentation_benchmark_v0'), classification = True)
     print(len(d))
