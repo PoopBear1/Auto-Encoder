@@ -1,22 +1,11 @@
 import torch
 import torch.nn as nn
-import torch.utils.data as Data
-import torchvision
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
-from torch.autograd import Variable
-from torchvision import transforms
-import os
-import torch.optim as optim
-import torch.nn.functional as F
-from torchvision.utils import save_image
 from torchsummary import summary
 
 
-class AutoEncoder(nn.Module):
-    def __init__(self, num_points) -> None:
-        super(AutoEncoder, self).__init__()
+class PointEncoder(nn.Module):
+    def __init__(self, num_points=2500):
+        super(PointEncoder, self).__init__()
         # batch_size = point_cloud.get_shape()[0].value
         # num_point = point_cloud.get_shape()[1].value
         # point_dim = point_cloud.get_shape()[2].value
@@ -27,28 +16,32 @@ class AutoEncoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Conv1d(3, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.LeakyReLU(),
+            nn.Tanh(),
 
             nn.Conv1d(64, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.LeakyReLU(),
+            nn.Tanh(),
 
             nn.Conv1d(64, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.LeakyReLU(),
+            nn.Tanh(),
 
             nn.Conv1d(64, 128, 1),
             nn.BatchNorm1d(128),
-            nn.LeakyReLU(),
+            nn.Tanh(),
 
             nn.Conv1d(128, 1024, 1),
             nn.BatchNorm1d(1024),
-            nn.LeakyReLU(),
-
+            nn.Tanh(),
         )
 
-        self.downsample = nn.MaxPool1d(num_points)
+    def forward(self, x):
+        return self.encoder(x)
 
+
+class PointDecoder(nn.Module):
+    def __init__(self, num_points=2500) -> None:
+        super(PointDecoder, self).__init__()
         self.decoder = nn.Sequential(
             nn.Linear(1024, 1024),
             nn.BatchNorm1d(1024),
@@ -62,6 +55,19 @@ class AutoEncoder(nn.Module):
         )
 
     def forward(self, x):
+        return self.decoder(x)
+
+
+class AutoEncoder(nn.Module):
+    def __init__(self, num_points) -> None:
+        super(AutoEncoder, self).__init__()
+        self.encoder = PointEncoder(num_points)
+
+        self.downsample = nn.MaxPool1d(num_points)
+
+        self.decoder = PointDecoder(num_points)
+
+    def forward(self, x):
         # print("Original shape is : ", x.shape)
         batch_size, point_dim, n_points = x.shape[0], x.shape[1], x.shape[2]
         # print(batch_size, point_dim, n_points)
@@ -73,7 +79,6 @@ class AutoEncoder(nn.Module):
         # print("The shape of max pooling is ", out.shape)
 
         out = out.view(-1, 1024)
-
         global_feat = out
         # print("Before decoder, the Reshape size:", out.shape)
 
@@ -81,94 +86,27 @@ class AutoEncoder(nn.Module):
         decoder = torch.reshape(decoder, (batch_size, point_dim, n_points))
         # print("back decoding, the shape is : ", decoder.shape)
 
-        # return decoder, global_feat
-        return decoder
+        return decoder, global_feat
+        # return decoder
 
 
+if __name__ == '__main__':
+    device = "cuda"
+    # summary(AutoEncoder(2500).to(device), input_size=(3, 2500), batch_size=32)
+    model = PointDecoder(2500).to(device)
+    inputs = torch.zeros((32, 1024)).to(device)
+    output = model(inputs)
+    print(output.shape)
+    # outputs, features = model(inputs)
+    # from chamfer_distance.chamfer_distance_gpu import ChamferDistance
 
+    # chamfer loss, the tensor shape has to be (batch_size, num_points, num_dim).
+    # loss_function = ChamferDistance()
 
+    # outputs = outputs.transpose(1, 2)
+    # inputs = inputs.transpose(1, 2)
 
-def train(train_loader, valid_loader, config):
-    device = config["device"]
-    loss_function = config["loss_function"]
-    model = AutoEncoder(config["num_points"]).to(device)
-    optimizer = optim.Adam(
-        model.parameters(),
-        lr=config["lr"],
-        weight_decay=config["regular_constant"],
-    )
-    train_loss_value = []
-    validate_loss_value = []
-    train_accuracy_value = []
-    validate_accuracy_value = []
-    current_epoch = []
-    low_loss = torch.tensor(float('inf')).cuda()
-
-    print("####### Training Processing on {}#######".format(device))
-    for epoch in range(config["num_epochs"]):
-        model.train()
-        train_loss = 0
-        train_accuracy = 0
-        current_epoch.append(epoch + 1)
-        total = 0
-        for batch_idx, (inputs, targets) in enumerate(train_loader):
-            optimizer.zero_grad()
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            # print(outputs[0].shape, "here\nhere", inputs[0].shape)
-            dist1, dist2 = loss_function(outputs, inputs)
-            loss = (torch.mean(dist1) + torch.mean(dist2))
-            loss.backward()
-            loss_value = loss.item()
-            optimizer.step()
-            train_loss += loss_value
-            total += targets.size(0)
-
-        train_loss /= len(train_loader.dataset)
-        train_loss_value.append(loss_value)
-
-        # Validation step
-        model.eval()
-        validation_loss = 0
-        for batch_idx, (inputs, targets) in enumerate(valid_loader):
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            dist1, dist2 = loss_function(outputs, inputs)
-            validation_loss += (torch.mean(dist1) + torch.mean(dist2)).item()
-        validation_loss /= len(valid_loader.dataset)
-        print("\nIn epoch: ", epoch + 1)
-        print("\nTraining set: Avg. loss: {:.6f}".format(train_loss))
-        print("\nValidation set: Avg. loss: {:.6f}".format(validation_loss))
-        validate_loss_value.append(validation_loss)
-
-        if validation_loss < low_loss:
-            low_loss = validation_loss
-
-            torch.save(model.state_dict(), os.path.join(os.getcwd(), "ckpt.pth"))
-            print("model save at checkpoint")
-
-    plt.plot(current_epoch, train_loss_value, "b", label="Training Loss")
-    plt.savefig(os.path.join(os.getcwd(), "loss_curve.jpg"))
-    plt.figure()
-    return model
-
-
-def test(test_loader, model, config):
-    model.eval()
-    test_loss = 0
-    device = config["device"]
-    loss_function = config["loss_function"]
-
-    with torch.no_grad():
-        for data, target in test_loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            dist1, dist2 = loss_function(output, data)
-            loss = (torch.mean(dist1) + torch.mean(dist2))
-            test_loss += loss.item()
-        test_loss /= len(test_loader.dataset)
-
-    print("\nTest set: Avg. loss: {:.6f}".format(test_loss))
-
-# device = "cuda"
-# summary(AutoEncoder(2500).to(device), input_size=(3, 2500), batch_size=32)
+    # dist1, dist2 = loss_function(outputs, inputs)
+    # loss = (torch.mean(dist1) + torch.mean(dist2)).item()
+    # print(outputs.shape)
+    # print(loss)
