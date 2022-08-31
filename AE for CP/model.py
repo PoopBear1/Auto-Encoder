@@ -16,23 +16,23 @@ class PointEncoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Conv1d(3, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.Tanh(),
+            nn.LeakyReLU(),
 
             nn.Conv1d(64, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.Tanh(),
+            nn.LeakyReLU(),
 
             nn.Conv1d(64, 64, kernel_size=1),
             nn.BatchNorm1d(64),
-            nn.Tanh(),
+            nn.LeakyReLU(),
 
             nn.Conv1d(64, 128, 1),
             nn.BatchNorm1d(128),
-            nn.Tanh(),
+            nn.LeakyReLU(),
 
             nn.Conv1d(128, 1024, 1),
             nn.BatchNorm1d(1024),
-            nn.Tanh(),
+            nn.LeakyReLU(),
         )
 
     def forward(self, x):
@@ -93,9 +93,10 @@ class AutoEncoder(nn.Module):
 if __name__ == '__main__':
     device = "cuda"
     # summary(AutoEncoder(2500).to(device), input_size=(3, 2500), batch_size=32)
-    model = PointDecoder(2500).to(device)
-    inputs = torch.zeros((32, 1024)).to(device)
-    output = model(inputs)
+    model = AutoEncoder(2500).to(device)
+    model.eval()
+    inputs = torch.zeros((1, 3, 2500)).to(device)
+    output, _ = model(inputs)
     print(output.shape)
     # outputs, features = model(inputs)
     # from chamfer_distance.chamfer_distance_gpu import ChamferDistance

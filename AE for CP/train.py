@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import os
 import torch.optim as optim
@@ -5,7 +6,7 @@ from model import AutoEncoder, PointEncoder, PointDecoder
 # from modelV2 import PointNetAE
 from torch.utils.tensorboard import SummaryWriter
 import open3d as o3d
-
+from Dataset import pc_normalize
 
 def train(train_loader, valid_loader, config):
     device = config["device"]
@@ -114,45 +115,39 @@ def test(test_loader, model, config):
 
     print("\nTest set: Avg. loss: {:.6f}".format(test_loss))
 
-# def best_feature_vector(device, filename_all, latent_vector_all, train_dl, model):
-#     print("Generate the Best Latent Vectors")
-#
-#     os.mkdir("plyfiles")
-#     path = os.path.join(os.getcwd(), "plyfiles")
-#     with torch.no_grad():
-#         best_latent_vector = torch.Tensor().to(device)
-#         best_filenames = list()
-#         autoencoder_eval = model
-#         autoencoder_eval.eval()  # set the network in evaluation mode
-#         decoder = PointDecoder(2500).to(device)
-#         for itrid, data in enumerate(train_dl):
-#             print(f"Evaluating Batch: {itrid}")
-#             filenames = list(data[1])
-#
-#             points = data[0]
-#             points = points.transpose(2, 1)
-#             points = points.to(device)
-#
-#             reconstructed_points, latent_vector = autoencoder_eval(points)  # perform training
-#             best_latent_vector = torch.cat((best_latent_vector, latent_vector), 0)
-#             best_filenames.extend(filenames)
-#
-#             # print(type(latent_vector),latent_vector,)
-#             reconstructed_point = decoder(latent_vector)
-#             reconstructed_point = torch.reshape(reconstructed_point, (32, 3, 2500)).cpu().detach().numpy()
-#             print(reconstructed_point.shape,type(reconstructed_point))
-#             pcd = o3d.geometry.PointCloud()
-#             pcd.points = o3d.utility.Vector3dVector(reconstructed_point)
-#             o3d.io.write_point_cloud(os.path.join(path, "Recon{}.ply".format(itrid)), pcd)
-#
-#         # add embedding for t-sne visualiztion
-#         # trimmedFiles = list(map(trimfilenames, best_filenames))
-#         # writer.add_embedding(best_latent_vector, metadata=trimmedFiles, global_step=m.best_epoch_id,
-#         #                      tag="Latent_Vectors")
-#
-#         # serialize the best latent vector
-#         # torch.save(best_latent_vector.detach(), 'saved_models/best_latent_vector_%d.pth' % m.best_epoch_id)
-#         # torch.save(best_filenames, 'saved_models/best_filenames_%d.pth' % m.best_epoch_id)
-#
-#         best_latent_vector = best_latent_vector.cpu().data.detach().numpy()
-#         return best_latent_vector
+
+def best_feature_vector(config, train_dl, model):
+    print("Generate the Best Latent Vectors")
+    device = config["device"]
+    path = os.path.join(os.getcwd(), "exp_data", config["class"])
+    with torch.no_grad():
+        best_latent_vector = torch.Tensor().to(device)
+        # best_filenames = list()
+        decoder = PointDecoder(config["num_points"]).to(device)
+        autoencoder_eval = model.eval()  # set the network in evaluation mode
+        for itrid, data in enumerate(train_dl):
+            # print(f"Evaluating Batch: {itrid}")
+            # filenames = list(data[1])
+            points = data[0]
+            points = points.transpose(2, 1)
+            points = points.to(device)
+
+            reconstructed_points, latent_vector = autoencoder_eval(points)  # perform training
+            best_latent_vector = torch.cat((best_latent_vector, latent_vector), 0)
+            # best_filenames will be N by 1024
+
+        samples, _ = best_latent_vector.shape
+        avg_feature = torch.sum(best_latent_vector, axis=0, keepdims=True) / samples
+        decoder.eval()
+        reconstructed_point = decoder(avg_feature)
+        reconstructed_point = torch.reshape(reconstructed_point, (1, 3, config["num_points"]))
+        print(reconstructed_point.shape)
+        reconstructed_point = reconstructed_point.squeeze().transpose(0, 1)
+        reconstructed_point = reconstructed_point.cpu().detach().numpy()
+        np.savetxt("avg_feature", reconstructed_point)
+
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(reconstructed_point)
+        o3d.io.write_point_cloud(os.path.join(path, "avg_Recon.ply"), pcd)
+
+        # return best_latent_vector

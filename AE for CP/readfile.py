@@ -1,4 +1,4 @@
-from train import train, test
+from train import train, test, best_feature_vector
 import torch
 import os
 import numpy as np
@@ -142,15 +142,18 @@ def load_data(file, config):
         os.mkdir(path)
         train_data, train_path, test_data, test_path = file.split_to_set()
         np.save(os.path.join(path, "train_data.npy"), train_data)
-        np.save(os.path.join(path, "test_data.npy"), test_data)
         np.save(os.path.join(path, "train_path.npy"), train_path)
+
         np.save(os.path.join(path, "test_data.npy"), test_data)
+        np.save(os.path.join(path, "test_path.npy"), test_path)
 
     Total_set = PointCloudDataSet(train_data, train_path, config["num_points"])
 
     train_set, validation_set = random_split(Total_set, [int(len(Total_set) * 0.8),
                                                          int(len(Total_set) - int(len(Total_set) * 0.8))])
     test_set = PointCloudDataSet(test_data, test_path, config["num_points"])
+
+    ## 能不能直接在这train_set看到大致的形状呢
 
     return (
         DataLoader(train_set, batch_size=config["batch_size"], shuffle=True),
@@ -202,9 +205,9 @@ def main():
 
     config = {
         "lr": 1e-3,
-        "num_epochs": 110,
+        "num_epochs": 120,
         "num_points": 2500,
-        "batch_size": 32,
+        "batch_size": 22,
         "regular_constant": 1e-6,
         "device": device,
         "loss_function": loss_function,
@@ -235,6 +238,8 @@ def main():
 
     # check model performance
     # trained_model_visualize(autoencoder, cloud_point_testfile, config)
+
+    best_feature_vector(config, train_loader, autoencoder)
     ############################
 
     # temp = PointCloudDataSet(np.expand_dims(cloud_point_testfile, 0), 1)
@@ -242,7 +247,8 @@ def main():
     #
     # valid_loader = DataLoader(temp, batch_size=1)
     # autoencoder = train(train_loader, valid_loader, config)
-    trained_model_visualize(autoencoder, cloud_point_testfile, config)
+    # trained_model_visualize(autoencoder, cloud_point_testfile, config)
+
     ############################
 
 
