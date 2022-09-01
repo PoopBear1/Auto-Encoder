@@ -4,7 +4,7 @@ from torchsummary import summary
 
 
 class PointEncoder(nn.Module):
-    def __init__(self, num_points=2500):
+    def __init__(self):
         super(PointEncoder, self).__init__()
         # batch_size = point_cloud.get_shape()[0].value
         # num_point = point_cloud.get_shape()[1].value
@@ -61,34 +61,34 @@ class PointDecoder(nn.Module):
 class AutoEncoder(nn.Module):
     def __init__(self, num_points) -> None:
         super(AutoEncoder, self).__init__()
-        self.encoder = PointEncoder(num_points)
+        self.encoder = PointEncoder()
 
         self.downsample = nn.MaxPool1d(num_points)
 
         self.decoder = PointDecoder(num_points)
 
     def forward(self, x):
-        # print("Original shape is : ", x.shape)
-        batch_size, point_dim, n_points = x.shape[0], x.shape[1], x.shape[2]
-        # print(batch_size, point_dim, n_points)
 
-        encoder = self.encoder(x)
-        # print("After encoding  the shape is : ", encoder.shape)
+        batch_size, point_dim, n_points = x.shape[0], x.shape[1], x.shape[2]
+        encoder = self.encoder_forward(x)
 
         out = self.downsample(encoder)
-        # print("The shape of max pooling is ", out.shape)
 
         out = out.view(-1, 1024)
         global_feat = out
-        # print("Before decoder, the Reshape size:", out.shape)
 
-        decoder = self.decoder(out)
+        decoder = self.decoder_forward(out)
         decoder = torch.reshape(decoder, (batch_size, point_dim, n_points))
-        # print("back decoding, the shape is : ", decoder.shape)
 
         return decoder, global_feat
-        # return decoder
 
+    def encoder_forward(self, x):
+        encoder = self.encoder(x)
+        return encoder
+
+    def decoder_forward(self, x):
+        out = self.decoder(x)
+        return out
 
 if __name__ == '__main__':
     device = "cuda"

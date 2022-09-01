@@ -8,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 import open3d as o3d
 from Dataset import pc_normalize
 
+
 def train(train_loader, valid_loader, config):
     device = config["device"]
     loss_function = config["loss_function"]
@@ -43,7 +44,7 @@ def train(train_loader, valid_loader, config):
             latent_vector_all = torch.cat((latent_vector_all, feature_vector), 0)
 
             filename_all.extend(file)
-
+            # print(inputs.shape,outputs.shape)
             inputs = inputs.transpose(1, 2)
             outputs = outputs.transpose(1, 2)
 
@@ -121,8 +122,7 @@ def best_feature_vector(config, train_dl, model):
     device = config["device"]
     path = os.path.join(os.getcwd(), "exp_data", config["class"])
     with torch.no_grad():
-        best_latent_vector = torch.Tensor().to(device)
-        # best_filenames = list()
+        all_latent_vector = torch.Tensor().to(device)
         decoder = PointDecoder(config["num_points"]).to(device)
         autoencoder_eval = model.eval()  # set the network in evaluation mode
         for itrid, data in enumerate(train_dl):
@@ -133,15 +133,20 @@ def best_feature_vector(config, train_dl, model):
             points = points.to(device)
 
             reconstructed_points, latent_vector = autoencoder_eval(points)  # perform training
-            best_latent_vector = torch.cat((best_latent_vector, latent_vector), 0)
+            all_latent_vector = torch.cat((all_latent_vector, latent_vector), 0)
             # best_filenames will be N by 1024
 
-        samples, _ = best_latent_vector.shape
-        avg_feature = torch.sum(best_latent_vector, axis=0, keepdims=True) / samples
-        decoder.eval()
-        reconstructed_point = decoder(avg_feature)
+        #############################
+        samples = all_latent_vector.shape[0]
+        print("all latent variable", all_latent_vector.shape, samples)
+
+        avg_feature = torch.sum(all_latent_vector, axis=0, keepdims=True) / samples
+        print("avg latent variable", avg_feature.shape)
+
+
+        reconstructed_point = autoencoder_eval.decoder_forward(avg_feature)
+
         reconstructed_point = torch.reshape(reconstructed_point, (1, 3, config["num_points"]))
-        print(reconstructed_point.shape)
         reconstructed_point = reconstructed_point.squeeze().transpose(0, 1)
         reconstructed_point = reconstructed_point.cpu().detach().numpy()
         np.savetxt("avg_feature", reconstructed_point)
@@ -150,4 +155,4 @@ def best_feature_vector(config, train_dl, model):
         pcd.points = o3d.utility.Vector3dVector(reconstructed_point)
         o3d.io.write_point_cloud(os.path.join(path, "avg_Recon.ply"), pcd)
 
-        # return best_latent_vector
+# return best_latent_vector

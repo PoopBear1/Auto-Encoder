@@ -77,7 +77,7 @@ class CP_file():
 
         test_data, test_path = data_set[train_len:], path_set[train_len:]
 
-        return train_data, train_path, test_data, test_path
+        return np.array(train_data), np.array(train_path), np.array(test_data), np.array(test_path)
 
     def __len__(self):
         return len(self.meta[self.class_choice])
@@ -90,21 +90,20 @@ class CP_file():
 
     def getTest(self):
         length = len(self.meta[self.class_choice])
+        np.random.seed(1)
         idx = np.random.choice(length)
         testfile, label = self.meta[self.class_choice][idx]
         testfile, label = np.loadtxt(testfile), np.loadtxt(label)
 
-        pcd = o3d.geometry.PointCloud()
-        pcd.points = o3d.utility.Vector3dVector(testfile)
-        o3d.io.write_point_cloud("Original.ply", pcd)
-
-        testfile = np.asarray(pcd.points)
+        # testfile, label = self.meta[self.class_choice][idx+1]
+        # testfile2, label2 = np.loadtxt(testfile), np.loadtxt(label)
+        testfile = np.asarray(testfile)
 
         choice = np.random.choice(testfile.shape[0], self.npoints, replace=True)
-        point_set = testfile[choice, :]
-        label = label[choice]
+        point_set_one = testfile[choice, :]
+        # label = label[choice]
 
-        point_set = pc_normalize(point_set)
+        point_set = pc_normalize(point_set_one)
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(point_set)
         o3d.io.write_point_cloud("sampledPC.ply", pcd)
@@ -147,6 +146,9 @@ def load_data(file, config):
         np.save(os.path.join(path, "test_data.npy"), test_data)
         np.save(os.path.join(path, "test_path.npy"), test_path)
 
+    # avg = np.sum(train_data, axis=0, keepdims=False) / train_data.shape[0]
+    # print(avg.shape)
+
     Total_set = PointCloudDataSet(train_data, train_path, config["num_points"])
 
     train_set, validation_set = random_split(Total_set, [int(len(Total_set) * 0.8),
@@ -159,6 +161,7 @@ def load_data(file, config):
         DataLoader(train_set, batch_size=config["batch_size"], shuffle=True),
         DataLoader(validation_set, batch_size=config["batch_size"], shuffle=True),
         DataLoader(test_set, batch_size=config["batch_size"], shuffle=False),
+        DataLoader(Total_set, batch_size=10, shuffle=False)
     )
 
 
@@ -221,7 +224,7 @@ def main():
 
     cloud_point_testfile = file.getTest()
 
-    train_loader, valid_loader, test_loader = load_data(file, config)
+    train_loader, valid_loader, test_loader, feature_map_dl = load_data(file, config)
     model_path = os.path.join(os.path.join(os.getcwd(), "exp_data"), config["class"], "ckpt.pth")
     if os.path.exists(model_path):
         checkpoint = torch.load(model_path, map_location=device)
@@ -233,23 +236,10 @@ def main():
     # show numerical loss result
     test(test_loader, autoencoder, config)
 
-    # train_loader, valid_loader, test_loader = load_data(file, config)
-    # autoencoder = train(train_loader, valid_loader, config)
+
 
     # check model performance
-    # trained_model_visualize(autoencoder, cloud_point_testfile, config)
-
-    best_feature_vector(config, train_loader, autoencoder)
-    ############################
-
-    # temp = PointCloudDataSet(np.expand_dims(cloud_point_testfile, 0), 1)
-    # train_loader = DataLoader(temp, batch_size=1)
-    #
-    # valid_loader = DataLoader(temp, batch_size=1)
-    # autoencoder = train(train_loader, valid_loader, config)
-    # trained_model_visualize(autoencoder, cloud_point_testfile, config)
-
-    ############################
-
+    trained_model_visualize(autoencoder, cloud_point_testfile, config)
+    best_feature_vector(config, feature_map_dl, autoencoder)
 
 main()
